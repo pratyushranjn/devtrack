@@ -1,6 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/Skeleton";
 
 interface ProjectData {
@@ -120,6 +124,27 @@ export default function ProjectMetrics() {
 
   if (loading) {
     return (
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle>Project Tracking</CardTitle>
+          <Skeleton className="h-4 w-16" />
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            {[1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} className="h-[88px] w-full rounded-lg" />
+            ))}
+          </div>
+          <div>
+            <Skeleton className="h-4 w-24 mb-3" />
+            <div className="space-y-2">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-[60px] w-full rounded-lg" />
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
       <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-[var(--card-foreground)]">
@@ -157,17 +182,18 @@ export default function ProjectMetrics() {
             className="rounded-md bg-[var(--accent)] px-3 py-1.5 text-sm font-medium text-[var(--accent-foreground)] transition-colors hover:opacity-90"
           >
             Connect Jira
-          </button>
-        </div>
-        <div className="rounded-lg border border-dashed border-[var(--border)] p-8 text-center">
-          <p className="text-[var(--muted-foreground)] mb-3">
-            Connect Jira to track issues alongside your code activity
-          </p>
-          <p className="text-xs text-[var(--muted-foreground)]">
-            See your issue status, velocity, and time to close
-          </p>
-        </div>
-        {showForm && (
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-lg border border-dashed border-[var(--border)] p-8 text-center mt-4">
+            <p className="text-[var(--muted-foreground)] mb-3">
+              Connect Jira to track issues alongside your code activity
+            </p>
+            <p className="text-xs text-[var(--muted-foreground)]">
+              See your issue status, velocity, and time to close
+            </p>
+          </div>
+          {showForm && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-[var(--card)] rounded-xl p-6 w-full max-w-md border border-[var(--border)]">
               <h3 className="text-lg font-semibold mb-4 text-[var(--card-foreground)]">
@@ -246,20 +272,21 @@ export default function ProjectMetrics() {
                     className="flex-1 rounded-md bg-[var(--accent)] px-3 py-2 text-sm font-medium text-[var(--accent-foreground)] transition-all hover:opacity-90 disabled:opacity-50 active:scale-95"
                   >
                     {connecting ? "Connecting..." : "Connect"}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
+                    variant="outline"
                     onClick={() => setShowForm(false)}
-                    className="rounded-md border border-[var(--border)] px-3 py-2 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--control)]"
                   >
                     Cancel
-                  </button>
+                  </Button>
                 </div>
               </form>
             </div>
           </div>
         )}
-      </div>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -276,20 +303,21 @@ export default function ProjectMetrics() {
             className="rounded-md bg-[var(--accent)] px-3 py-1.5 text-sm font-medium text-[var(--accent-foreground)] transition-colors hover:opacity-90"
           >
             Connect Jira
-          </button>
-        </div>
-        <div className="rounded-lg border border-[var(--destructive)]/20 bg-[var(--destructive)]/10 p-4 text-sm text-[var(--destructive)]">
-          <p>{error}</p>
-          <button
-            type="button"
-            onClick={fetchData}
-
-            className="mt-3 rounded-md border border-[var(--destructive)]/30 px-3 py-1.5 text-xs font-medium text-[var(--destructive)] transition-colors hover:bg-[var(--destructive)]/10"
-          >
-            Try again
-          </button>
-        </div>
-        {showForm && (
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-lg border border-[var(--destructive)]/20 bg-[var(--destructive)]/10 p-4 text-sm text-[var(--destructive)] mt-4">
+            <p>{error}</p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={fetchData}
+              className="mt-3 border-[var(--destructive)]/30 text-[var(--destructive)] hover:bg-[var(--destructive)]/10"
+            >
+              Try again
+            </Button>
+          </div>
+          {showForm && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-[var(--card)] rounded-xl p-6 w-full max-w-md border border-[var(--border)]">
               <h3 className="text-lg font-semibold mb-4 text-[var(--card-foreground)]">
@@ -368,20 +396,21 @@ export default function ProjectMetrics() {
                     className="flex-1 rounded-md bg-[var(--accent)] px-3 py-2 text-sm font-medium text-[var(--accent-foreground)] transition-all hover:opacity-90 disabled:opacity-50 active:scale-95"
                   >
                     {connecting ? "Connecting..." : "Connect"}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
+                    variant="outline"
                     onClick={() => setShowForm(false)}
-                    className="rounded-md border border-[var(--border)] px-3 py-2 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--control)]"
                   >
                     Cancel
-                  </button>
+                  </Button>
                 </div>
               </form>
             </div>
           </div>
         )}
-      </div>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -404,7 +433,7 @@ export default function ProjectMetrics() {
         <button
           type="button"
           onClick={handleDisconnect}
-          className="text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+          className="text-xs text-[var(--muted-foreground)]"
         >
           Disconnect
         </button>
@@ -443,22 +472,24 @@ export default function ProjectMetrics() {
                     {issue.summary}
                   </p>
                 </div>
-                <span
-                  className={`ml-3 text-xs font-medium ${getStatusColor(
+                <Badge
+                  variant={
                     issue.statusCategory === "done"
-                      ? "Done"
+                      ? "success"
                       : issue.statusCategory === "indeterminate"
-                        ? "In Progress"
-                        : "To Do"
-                  )}`}
+                        ? "secondary"
+                        : "outline"
+                  }
+                  className="ml-3 font-medium"
                 >
                   {issue.status}
-                </span>
+                </Badge>
               </div>
             ))}
           </div>
         </div>
       )}
-    </div>
+      </CardContent>
+    </Card>
   );
 }

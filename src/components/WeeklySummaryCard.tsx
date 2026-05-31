@@ -4,6 +4,9 @@
 import { ChevronDown } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useAccount } from "@/components/AccountContext";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 interface WeeklySummaryData {
   commits: {
@@ -75,16 +78,16 @@ const maxActiveDays = summary?.activeDays
         <button
           type="button"
           onClick={() => setIsCollapsed((value) => !value)}
-          className="text-sm text-[var(--muted-foreground)] transition-colors hover:text-[var(--card-foreground)]"
+          className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
           aria-expanded={!isCollapsed}
           aria-label={
             isCollapsed ? "Expand weekly summary" : "Collapse weekly summary"
           }
           suppressHydrationWarning
         >
-          <ChevronDown className="h-4 w-4" />
-        </button>
-      </div>
+          {isCollapsed ? ">" : "v"}
+        </Button>
+      </CardHeader>
 
       {!isCollapsed &&
         (loading ? (
@@ -104,10 +107,14 @@ const maxActiveDays = summary?.activeDays
             ))}
           </div>
         ) : error ? (
-          <div className="mt-4 rounded-lg border border-[var(--destructive)]/20 bg-[var(--destructive)]/10 p-4 text-sm text-[var(--destructive)]">
-            {error}
-          </div>
-          <div className="mt-4 space-y-4">
+          <CardContent>
+            <div className="mt-4 rounded-lg border border-[var(--destructive)]/20 bg-[var(--destructive)]/10 p-4 text-sm text-[var(--destructive)]">
+              {error}
+            </div>
+          </CardContent>
+        ) : summary && summary.commits && summary.prs && summary.activeDays ? (
+          <CardContent>
+            <div className="space-y-4 pt-2">
             {/* Commits Comparison */}
             <div className="rounded-lg bg-[var(--control)] p-4 stat-cell">
               <div className="mb-3 flex items-center justify-between">
@@ -250,8 +257,9 @@ const maxActiveDays = summary?.activeDays
                 </span>
               </div>
             </div>
-          </div>
+            </div>
+          </CardContent>
         ) : null)}
-    </div>
+    </Card>
   );
 }
