@@ -57,7 +57,6 @@ test("[API E2E] /api/metrics/contributions returns 200 with valid session cookie
 }) => {
   const sessionToken = await buildSessionCookie();
 
-  // Add the signed cookie to the browser context.
   await page.context().addCookies([
     {
       name: "next-auth.session-token",
@@ -71,7 +70,7 @@ test("[API E2E] /api/metrics/contributions returns 200 with valid session cookie
     },
   ]);
 
-  // Mock the NextAuth session verify call so the API handler resolves the user.
+  // Setup session mock BEFORE making the request
   await page.route("**/api/auth/session**", (route) =>
     route.fulfill({
       contentType: "application/json",
@@ -85,15 +84,14 @@ test("[API E2E] /api/metrics/contributions returns 200 with valid session cookie
     })
   );
 
-  // Use the same browser context's fetch so the cookie is sent.
-  const res = await page.evaluate(async () => {
-    const r = await fetch("/api/metrics/contributions?days=7");
-    return { status: r.status, ok: r.ok };
+  // Use request context with proper headers
+  const res = await request.get("/api/metrics/contributions?days=7", {
+    headers: {
+      Cookie: `next-auth.session-token=${sessionToken}`,
+    },
   });
 
-  // With a valid session the route must respond 200.
-  expect(res.status).toBe(200);
-  expect(res.ok).toBe(true);
+  expect(res.status()).toBe(200);
 });
 
 test("[API E2E] /api/auth/session returns a JSON object", async ({

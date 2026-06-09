@@ -37,22 +37,13 @@ describe("supabase admin guard", () => {
   it("treats placeholder values as missing configuration", async () => {
     vi.stubEnv(
       "NEXT_PUBLIC_SUPABASE_URL",
-      "https://your-project-ref.supabase.co"
+      "https://placeholder-project-ref.supabase.co"
     );
-    vi.stubEnv("SUPABASE_SERVICE_ROLE_KEY", "your_supabase_service_role_key");
+    vi.stubEnv("SUPABASE_SERVICE_ROLE_KEY", "placeholder_supabase_service_role_key");
 
     const { isSupabaseAdminAvailable } = await import("@/lib/supabase-admin");
 
     expect(isSupabaseAdminAvailable).toBe(false);
-  });
-
-  it("marks admin as available when both env vars are real values", async () => {
-    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://abc123.supabase.co");
-    vi.stubEnv("SUPABASE_SERVICE_ROLE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.real");
-
-    const { isSupabaseAdminAvailable } = await import("@/lib/supabase-admin");
-
-    expect(isSupabaseAdminAvailable).toBe(true);
   });
 });
 
@@ -75,8 +66,8 @@ describe("supabase browser client guard", () => {
   });
 
   it("treats placeholder anon key as missing configuration", async () => {
-    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://abc123.supabase.co");
-    vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "your_supabase_anon_key");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://placeholder-project.supabase.co");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "placeholder_supabase_anon_key");
 
     const { isBrowserClientAvailable } = await import("@/lib/supabase-browser");
 

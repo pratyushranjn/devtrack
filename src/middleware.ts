@@ -10,10 +10,17 @@ import {
   isCsrfExempt,
   validateCsrf,
 } from "@/lib/csrf";
+import {
+  localeCookieMaxAge,
+  localeCookieName,
+} from "@/i18n/config";
+import { detectLocale } from "@/i18n/detection";
 
 export const runtime = "nodejs";
 
 const isDev = process.env.NODE_ENV === "development";
+const isPlaywrightE2E = process.env.PLAYWRIGHT_TEST === "true";
+const isRelaxedRateLimit = isDev || isPlaywrightE2E;
 
 /**
  * Configuration constants for API rate limits and window sizes.
@@ -29,17 +36,17 @@ const RATE_LIMIT_CONFIG = {
   /**
    * Maximum allowed API metrics requests for authenticated users in the window.
    */
-  AUTHENTICATED_LIMIT: isDev ? 5000 : 60,
+  AUTHENTICATED_LIMIT: isRelaxedRateLimit ? 5000 : 60,
 
   /**
    * Maximum allowed API metrics requests for anonymous users in the window.
    */
-  ANONYMOUS_LIMIT: isDev ? 1000 : 10,
+  ANONYMOUS_LIMIT: isRelaxedRateLimit ? 1000 : 10,
 
   /**
    * Maximum allowed sign-in attempts for authentication routes in the window.
    */
-  AUTH_LIMIT: isDev ? 1000 : AUTH_LIMIT,
+  AUTH_LIMIT: isRelaxedRateLimit ? 1000 : AUTH_LIMIT,
 } as const;
 
 const memoryBuckets = new Map<string, number[]>();
@@ -74,6 +81,21 @@ function buildHeaders(result: RateLimitResult) {
   }
 
   return headers;
+}
+
+function withLocaleCookie(req: NextRequest, response: NextResponse) {
+  const resolved = detectLocale({
+    cookieLocale: req.cookies.get(localeCookieName)?.value,
+    acceptLanguage: req.headers.get("accept-language"),
+  });
+
+  response.cookies.set(localeCookieName, resolved.locale, {
+    maxAge: localeCookieMaxAge,
+    path: "/",
+    sameSite: "lax",
+  });
+
+  return response;
 }
 
 function pruneMemoryBuckets(now: number) {
@@ -256,19 +278,19 @@ export async function middleware(req: NextRequest) {
     const url = req.nextUrl.clone();
     url.pathname = "/";
     url.search = "";
-    return NextResponse.redirect(url);
+    return withLocaleCookie(req, NextResponse.redirect(url));
   }
 
   if (isProtectedRoute) {
-    return NextResponse.next();
+    return withLocaleCookie(req, NextResponse.next());
   }
 
   if (isAdminRoute) {
     // Check if token explicitly has the admin role
     if (!token?.role || token.role !== "admin") {
-      return new NextResponse("Forbidden: Admin access required", { status: 403 });
+      return withLocaleCookie(req, new NextResponse("Forbidden: Admin access required", { status: 403 }));
     }
-    return NextResponse.next();
+    return withLocaleCookie(req, NextResponse.next());
   }
 
   if (isAuthSensitivePath(pathname)) {
@@ -279,20 +301,20 @@ export async function middleware(req: NextRequest) {
     if (!authResult.allowed) {
       console.warn("auth_rate_limit_hit", { ip, path: pathname });
       const headers = buildHeaders({ ...authResult, limit: authLimit });
-      return NextResponse.json(
+      return withLocaleCookie(req, NextResponse.json(
         { error: "Too many authentication attempts. Please try again later." },
         { status: 429, headers }
-      );
+      ));
     }
 
-    return NextResponse.next();
+    return withLocaleCookie(req, NextResponse.next());
   }
 
   const isRateLimitedPath =
     pathname.startsWith("/api/metrics/") || pathname === "/api/contact";
 
   if (!isRateLimitedPath) {
-    return NextResponse.next();
+    return withLocaleCookie(req, NextResponse.next());
   }
 
   const githubId = typeof token?.githubId === "string" ? token.githubId : null;
@@ -307,14 +329,14 @@ export async function middleware(req: NextRequest) {
     console.warn(isContact ? "contact_rate_limit_hit" : "metrics_rate_limit_hit", {
       identifier, path: req.nextUrl.pathname, limit,
     });
-    return NextResponse.json(
+    return withLocaleCookie(req, NextResponse.json(
       {
         error: isContact
           ? "Too many submissions. Please retry shortly."
           : "Too many metrics requests. Please retry shortly.",
       },
       { status: 429, headers }
-    );
+    ));
   }
 
   const response = NextResponse.next();
@@ -324,7 +346,7 @@ export async function middleware(req: NextRequest) {
     response.headers.set("Cache-Control", "private, max-age=300, stale-while-revalidate=600");
   }
 
-  return response;
+  return withLocaleCookie(req, response);
 }
 
 export const config = {
