@@ -226,7 +226,7 @@ export async function middleware(req: NextRequest) {
 
   let token = await getToken({
     req,
-    secret: process.env.NEXTAUTH_SECRET,
+    secret: process.env.NEXTAUTH_SECRET || "development-secret-key",
     secureCookie: isProduction,
     cookieName: isProduction
       ? "__Secure-next-auth.session-token"
@@ -239,7 +239,7 @@ export async function middleware(req: NextRequest) {
     // or a dev build that somehow received a Secure cookie.
     token = await getToken({
       req,
-      secret: process.env.NEXTAUTH_SECRET,
+      secret: process.env.NEXTAUTH_SECRET || "development-secret-key",
       secureCookie: !isProduction,
       cookieName: !isProduction
         ? "__Secure-next-auth.session-token"
