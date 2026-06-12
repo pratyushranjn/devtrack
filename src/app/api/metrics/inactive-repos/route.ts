@@ -1,6 +1,5 @@
-import { getServerSession } from "next-auth";
+import { getSessionWithToken } from "@/lib/get-session-token";
 import { NextRequest } from "next/server";
-import { authOptions } from "@/lib/auth";
 import { getAccountToken, getAllAccounts, mergeMetrics } from "@/lib/github-accounts";
 import { fetchUserRepos, GitHubAuthError, type GitHubRepo } from "@/lib/github";
 import { githubAuthErrorResponse } from "@/lib/github-fetch";
@@ -127,14 +126,17 @@ async function fetchInactiveReposForAccount(
 }
 
 export async function GET(req: NextRequest) {
-  const session = await getServerSession(authOptions);
+  const sessionData = await getSessionWithToken();
 
-  if (!session?.accessToken || !session.githubLogin) {
+  if (!sessionData || !sessionData.session.githubLogin) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
   if (session.error === "TokenRevoked") {
     return githubAuthErrorResponse();
   }
+
+  const session = sessionData.session;
+  const accessToken = sessionData.accessToken;
 
   const thresholdDays = parseThreshold(req.nextUrl.searchParams.get("days"));
   const accountId = req.nextUrl.searchParams.get("accountId");
@@ -143,10 +145,10 @@ export async function GET(req: NextRequest) {
   if (!accountId) {
     try {
       const result = await fetchInactiveReposForAccount(
-        session.accessToken,
+        accessToken,
         session.githubLogin,
         thresholdDays,
-        { bypass, userId: session.githubId ?? session.githubLogin }
+        { bypass, userId: session.githubId ?? session.githubLogin! }
       );
 
       return Response.json(result);
@@ -169,7 +171,7 @@ export async function GET(req: NextRequest) {
   if (accountId === "combined") {
     const accounts = await getAllAccounts(
       {
-        token: session.accessToken,
+        token: accessToken,
         githubId: session.githubId,
         githubLogin: session.githubLogin,
       },
@@ -200,7 +202,7 @@ export async function GET(req: NextRequest) {
   if (accountId === session.githubId) {
     try {
       const result = await fetchInactiveReposForAccount(
-        session.accessToken,
+        accessToken,
         session.githubLogin,
         thresholdDays,
         { bypass, userId: session.githubId }

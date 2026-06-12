@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getSessionWithToken } from "@/lib/get-session-token";
 import { supabaseAdmin } from "@/lib/supabase";
 import { resolveAppUser } from "@/lib/resolve-user";
 import { GITHUB_API } from "@/lib/github";
@@ -99,10 +98,13 @@ async function dispatchEventForUser(
 }
 
 export async function GET(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session?.accessToken || !session.githubId || !session.githubLogin) {
+  const sessionData = await getSessionWithToken();
+  if (!sessionData || !sessionData.session.githubId || !sessionData.session.githubLogin) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const session = sessionData.session;
+  const accessToken = sessionData.accessToken;
 
   const user = await resolveAppUser(session.githubId, session.githubLogin);
   if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -115,7 +117,7 @@ export async function GET(req: Request) {
       await dispatchEventForUser(
         user.id,
         session.githubLogin,
-        session.accessToken,
+        accessToken,
         "daily.summary",
         1
       );
@@ -123,7 +125,7 @@ export async function GET(req: Request) {
       await dispatchEventForUser(
         user.id,
         session.githubLogin,
-        session.accessToken,
+        accessToken,
         "weekly.summary",
         7
       );

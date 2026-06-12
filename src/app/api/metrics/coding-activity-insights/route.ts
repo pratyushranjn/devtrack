@@ -1,6 +1,5 @@
-import { getServerSession } from "next-auth";
+import { getSessionWithToken } from "@/lib/get-session-token";
 import { NextRequest } from "next/server";
-import { authOptions } from "@/lib/auth";
 import {
   getAccountToken,
   getAllAccounts,
@@ -139,14 +138,17 @@ async function buildInsightsForAccount(
 }
 
 export async function GET(req: NextRequest) {
-  const session = await getServerSession(authOptions);
+  const sessionData = await getSessionWithToken();
 
-  if (!session?.accessToken || !session.githubLogin) {
+  if (!sessionData || !sessionData.session.githubLogin) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
   if (session.error === "TokenRevoked") {
     return githubAuthErrorResponse();
   }
+
+  const session = sessionData.session;
+  const accessToken = sessionData.accessToken;
 
   const accountId = req.nextUrl.searchParams.get("accountId");
   const timeZone = getRequestedTimeZone(req);
@@ -156,10 +158,10 @@ export async function GET(req: NextRequest) {
   if (!accountId) {
     try {
       const data = await buildInsightsForAccount(
-        session.accessToken,
+        accessToken,
         session.githubLogin,
         timeZone,
-        { bypass, userId: cacheUserId }
+        { bypass, userId: cacheUserId! }
       );
 
       return Response.json(data);
@@ -181,7 +183,7 @@ export async function GET(req: NextRequest) {
     if (accountId === "combined") {
       const accounts = await getAllAccounts(
         {
-          token: session.accessToken,
+          token: accessToken,
           githubId: session.githubId,
           githubLogin: session.githubLogin,
         },
@@ -215,7 +217,7 @@ export async function GET(req: NextRequest) {
 
     if (accountId === session.githubId) {
       const data = await buildInsightsForAccount(
-        session.accessToken,
+        accessToken,
         session.githubLogin,
         timeZone,
         { bypass, userId: session.githubId }
