@@ -631,7 +631,8 @@ export default function StreakTracker() {
 
                   <button
                     type="button"
-                    aria-label={stat.tooltip}
+                    aria-label={`More info about ${stat.label}`}
+                    title={stat.tooltip}
                     className="text-[var(--muted-foreground)] hover:text-[var(--accent)]"
                   >
                     <svg
