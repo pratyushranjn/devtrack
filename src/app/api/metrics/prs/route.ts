@@ -107,7 +107,7 @@ async function fetchFirstReviewTimestamp(
     Authorization: `Bearer ${token}`,
     Accept: "application/vnd.github+json",
   };
-  
+
   const [reviewsRes, commentsRes] = await Promise.all([
     fetch(`${GITHUB_API}/repos/${repo}/pulls/${pr.number}/reviews?per_page=100`, { headers, cache: "no-store" }),
     fetch(`${GITHUB_API}/repos/${repo}/pulls/${pr.number}/comments?per_page=100`, { headers, cache: "no-store" }),
@@ -167,11 +167,11 @@ async function fetchPRMetrics(
   const authorQ = githubLogin ? githubLogin : "@me";
   let q = `type:pr+author:${authorQ}`;
   const cutoff = new Date();
-cutoff.setDate(cutoff.getDate() - range);
+  cutoff.setDate(cutoff.getDate() - range);
 
-const searchSince = cutoff.toISOString().split("T")[0];
+  const searchSince = cutoff.toISOString().split("T")[0];
 
-q += `+created:>=${searchSince}`;
+  q += `+created:>=${searchSince}`;
   if (orgName) {
     q += `+org:${orgName}`;
   } else if (excludedOrgs.length > 0) {
@@ -197,7 +197,7 @@ q += `+created:>=${searchSince}`;
   const mergedPRs = data.items.filter((pr) => pr.pull_request?.merged_at != null);
   const merged = mergedPRs.length;
   const closed = data.items.filter((pr) => pr.state === "closed" && pr.pull_request?.merged_at == null).length;
-  
+
   const avgReviewMs = mergedPRs.length > 0
     ? mergedPRs.reduce((sum, pr) => sum + (new Date(pr.closed_at!).getTime() - new Date(pr.created_at).getTime()), 0) / mergedPRs.length
     : 0;
@@ -263,7 +263,7 @@ q += `+created:>=${searchSince}`;
     if (!weeklyMap[ct.week]) weeklyMap[ct.week] = [];
     weeklyMap[ct.week].push(ct.hours);
   });
-  
+
   const weeklyTrend = Object.entries(weeklyMap).map(([week, times]) => ({
     week,
     avgHours: Math.round(times.reduce((a, b) => a + b, 0) / times.length),
@@ -274,7 +274,7 @@ q += `+created:>=${searchSince}`;
     if (!repoMap[ct.repo]) repoMap[ct.repo] = [];
     repoMap[ct.repo].push(ct.hours);
   });
-  
+
   const slowestRepos = Object.entries(repoMap)
     .map(([repo, times]) => ({ repo, avgHours: Math.round(times.reduce((a, b) => a + b, 0) / times.length) }))
     .sort((a, b) => b.avgHours - a.avgHours)
@@ -520,7 +520,7 @@ export async function GET(req: NextRequest) {
   const accountId = req.nextUrl.searchParams.get("accountId");
   const range = Number(req.nextUrl.searchParams.get("range")) || 30;
   const bypass = isMetricsCacheBypassed(req);
-  
+
   const gitlabCacheContext = {
     bypass,
     userId: session.githubId ?? session.githubLogin ?? "primary",
@@ -571,12 +571,12 @@ export async function GET(req: NextRequest) {
         orgName,
         excludedOrgs
       );
-      
+
       const [gitlab, reviews] = await Promise.all([
         getGitLabMetrics(gitlabToken, gitlabCacheContext),
         fetchReviewMetrics(session.accessToken).catch(() => null),
       ]);
-      
+
       return Response.json({ ...formatPRMetricsResponse(result, gitlab), reviews });
     } catch {
       // Catches errors from fetchCachedPRMetrics (GitHub Search API failures).
@@ -642,7 +642,7 @@ export async function GET(req: NextRequest) {
           weeklyTrendsMap[wt.week].push(wt.avgHours);
         });
       });
-      
+
       const combinedWeeklyTrend = Object.entries(weeklyTrendsMap).map(([week, hoursArray]) => ({
         week,
         avgHours: Math.round(hoursArray.reduce((a, b) => a + b, 0) / hoursArray.length)
@@ -670,7 +670,7 @@ export async function GET(req: NextRequest) {
         getGitLabMetrics(gitlabToken, gitlabCacheContext),
         fetchReviewMetrics(session.accessToken).catch(() => null),
       ]);
-      
+
       return Response.json({ ...formatPRMetricsResponse(combinedMetrics, gitlab), reviews });
     } catch {
       return Response.json({ error: "Failed to compile combined profile metrics" }, { status: 502 });
@@ -678,8 +678,8 @@ export async function GET(req: NextRequest) {
   }
 
   const token = !targetAccountId || targetAccountId === session.githubId
-      ? session.accessToken
-      : await getAccountToken(userRow.id, targetAccountId);
+    ? session.accessToken
+    : await getAccountToken(userRow.id, targetAccountId);
 
   if (!token) return Response.json({ error: "Account not found" }, { status: 404 });
 
@@ -708,12 +708,12 @@ export async function GET(req: NextRequest) {
       orgName,
       excludedOrgs
     );
-    
+
     const [gitlab, reviews] = await Promise.all([
       getGitLabMetrics(gitlabToken, gitlabCacheContext),
       fetchReviewMetrics(session.accessToken).catch(() => null),
     ]);
-    
+
     return Response.json({ ...formatPRMetricsResponse(result, gitlab), reviews });
   } catch (e) {
     return Response.json({ error: "GitHub API error" }, { status: 502 });

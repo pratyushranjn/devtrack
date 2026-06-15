@@ -152,8 +152,8 @@ export default function PRMetrics() {
     );
 
     const className = `rounded-lg p-4 text-center min-w-0 border border-transparent transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-md ${stat.warning
-        ? "border-orange-400/30 bg-orange-500/10 hover:bg-orange-500/15 hover:border-orange-400/50"
-        : "bg-[var(--control)] hover:bg-[var(--control-hover)] hover:border-[var(--border)]"
+      ? "border-orange-400/30 bg-orange-500/10 hover:bg-orange-500/15 hover:border-orange-400/50"
+      : "bg-[var(--control)] hover:bg-[var(--control-hover)] hover:border-[var(--border)]"
       }`;
 
     return stat.href ? (
