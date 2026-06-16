@@ -347,7 +347,10 @@ export const getCachedLeaderboard = (filters: LeaderboardFilters = {}) => {
   return unstable_cache(
     async () => buildLeaderboard(filters),
     ["leaderboard", period],
-    { revalidate: CACHE_REFRESH_SECONDS }
+    {
+      revalidate: CACHE_REFRESH_SECONDS,
+      tags: ["leaderboard"],
+    }
   )();
 };
 
@@ -356,7 +359,7 @@ export async function getLeaderboardData(
   filters: LeaderboardFilters = {}
 ): Promise<LeaderboardPayload | null> {
   const period = filters.period ?? DEFAULT_PERIOD;
-  
+
   if (bypass) {
     try {
       const payload = await buildLeaderboard(filters);
