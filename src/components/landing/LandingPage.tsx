@@ -1158,7 +1158,7 @@ function ContributeSection({ stats }: { stats: RepoStats }) {
           who actually use it. Every widget, every metric, every API was contributed by
           someone in this list. {stats.goodFirstIssues > 0 && (
             <span style={{ color: TEXT }}>
-              {stats.goodFirstIssues} issues are tagged good&nbsp;first&nbsp;issue and waiting right now.
+              {stats.goodFirstIssues}{" "} issues are tagged good&nbsp;first&nbsp;issue and waiting right now.
             </span>
           )}
         </p>
