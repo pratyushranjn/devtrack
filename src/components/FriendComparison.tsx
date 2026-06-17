@@ -34,7 +34,7 @@ function FriendComparison() {
     if (typeof window === "undefined") return "";
     return localStorage.getItem(STORAGE_KEY) ?? "";
   });
-
+  const [selectedUserAvatar, setSelectedUserAvatar] = useState("");
   const [comparingUser, setComparingUser] = useState("");
   const [myData, setMyData] = useState<CompareData | null>(null);
   const [friendData, setFriendData] = useState<CompareData | null>(null);
@@ -136,6 +136,7 @@ function FriendComparison() {
 
   const chooseSuggestion = (user: SuggestedUser) => {
     setFriendUsername(user.username);
+    setSelectedUserAvatar(user.avatarUrl);
     setSuppressNextSuggestFetch(true);
     setSuggestions([]);
     setSuggestOpen(false);
@@ -162,6 +163,16 @@ function FriendComparison() {
       } else {
         setFriendData(data);
         localStorage.setItem(STORAGE_KEY, trimmed);
+        window.dispatchEvent(
+          new CustomEvent("devtrack:compare-user", {
+            detail: { username: trimmed },
+          })
+        );
+        window.dispatchEvent(
+          new CustomEvent("devtrack:show-commit-activity", {
+            detail: { username: trimmed },
+          })
+        );
       }
     } catch {
       setError("An error occurred");
@@ -177,17 +188,16 @@ function FriendComparison() {
 
   const clearComparison = () => {
     setFriendUsername("");
+    setSelectedUserAvatar("");
+    setComparingUser("");
     setFriendData(null);
     setError("");
     localStorage.removeItem(STORAGE_KEY);
   };
 
-  const hasNoCompareData =
-    !!friendData &&
-    friendData.streak === 0 &&
-    friendData.commits30d === 0 &&
-    friendData.prs === 0 &&
-    (!friendData.topLanguage || friendData.topLanguage === "");
+  const handleCommitActivityClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+  };
 
   return (
     <div className="w-full overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-6 shadow-sm">
@@ -218,6 +228,16 @@ function FriendComparison() {
           >
             Compare
           </button>
+
+          {friendData && (
+            <button
+              type="button"
+              onClick={clearComparison}
+              className="w-full sm:w-auto shrink-0 whitespace-nowrap rounded-md bg-red-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-800"
+            >
+              Clear
+            </button>
+          )}
         </form>
       </div>
 
