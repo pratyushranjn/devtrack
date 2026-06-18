@@ -410,16 +410,10 @@ test.describe("visual regression screenshots", () => {
       document.documentElement.dataset.theme = "modern-light-blue";
       document.documentElement.classList.remove("dark");
     });
-        // Re-apply mocks before reload
-    await mockDashboardApis(page);
-
-    await page.evaluate(() => {
-      window.localStorage.setItem("theme", "modern-light-blue");
-      document.documentElement.dataset.theme = "modern-light-blue";
-      document.documentElement.classList.remove("dark");
-    });
     await page.emulateMedia({ colorScheme: "light" });
+    // Re-apply mocks before reload
     await page.reload({ waitUntil: "load" }); 
+    await mockDashboardApis(page);
     await expect(page.getByRole("heading", { name: "Dashboard", exact: true })).toBeVisible({
       timeout: 30_000,
     });
