@@ -166,6 +166,27 @@ test.beforeEach(async ({ page }) => {
     await route.fulfill({ contentType: "application/json", body: JSON.stringify({ notifications: [], unreadCount: 0 }) });
   });
 
+  await page.route("**/api/milestones**", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ milestones: [] }),
+    });
+  });
+
+  await page.route("**/api/accounts**", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ accounts: [] }),
+    });
+  });
+
+  await page.route("**/api/user/orgs**", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ accounts: [], config: {} }),
+    });
+  });
+
   await page.route("**/api/user/github-accounts", async (route) => {
     await route.fulfill({
       contentType: "application/json",
